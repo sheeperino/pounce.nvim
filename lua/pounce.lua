@@ -75,6 +75,7 @@ function M.pounce(opts)
   local ns = vim.api.nvim_create_namespace ""
   local input = opts and opts.do_repeat and last_input or ""
   local hl_prio = 65533
+  local leader_press = false
 
   local old_cmdheight = vim.o.cmdheight
   if old_cmdheight == 0 then
@@ -201,7 +202,7 @@ function M.pounce(opts)
     local elapsed = os.clock() - start_clock
     log.debug("Matching took " .. elapsed * 1000 .. "ms")
 
-    vim.api.nvim_echo({ { "pounce> ", "Keyword" }, { input } }, false, {})
+    vim.api.nvim_echo({ { "", "Keyword" }, { input } }, false, {})
     vim.cmd "redraw"
 
     local ok, nr = pcall(vim.fn.getchar)
@@ -209,7 +210,22 @@ function M.pounce(opts)
       break
     end
 
-    if nr == 27 then -- escape
+    -- nr = 32 == space
+    if nr == 32 then
+      if not leader_press then
+        leader_press = true
+        nr = 0
+      else
+      end
+    elseif leader_press then
+      leader_press = false
+      if nr >= 97 and nr <= 122 then
+        nr = nr - 32
+      end
+    end
+
+    if nr == 0 then
+    elseif nr == 27 then -- escape
       break
     elseif nr == "\x80kb" or nr == 8 then -- backspace or <C-h>
       input = input:sub(1, -2)
